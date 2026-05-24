@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upchurzle — Song Guessing Game</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial; padding: 24px; max-width: 900px; margin: auto; }
+    header { font-size: 1.6rem; margin-bottom: 18px; }
+    select, button { font-size: 1rem; padding: 8px; margin: 6px 0; }
+    .result { margin-top: 18px; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: #fafafa; }
+    .score { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+    .detail { font-size: 0.95rem; color: #444; margin-top: 8px; }
+    .comparison { margin-top: 10px; white-space: pre-wrap; font-family: inherit; }
+    .match { background: #d4ffd4; color: #022; padding: 0 2px; border-radius: 3px; }
+    .partial { background: #fff4c2; color: #432; padding: 0 2px; border-radius: 3px; }
+    .mismatch { color: #888; }
+    .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    @media (max-width:600px){ .controls{flex-direction:column;align-items:flex-start} }
+  </style>
+</head>
+<body>
+  <header>Upchurzzle — Guess the song title</header>
+
+  <div>
+    <label for="artistSelect">Choose an artist</label><br />
+    <select id="artistSelect"></select>
+  </div>
+
+  <div>
+    <label for="songSelect">Pick your guess (song title)</label><br />
+    <select id="songSelect"></select>
+  </div>
+
+  <div class="controls">
+    <button id="guessButton">Guess</button>
+    <button id="revealButton">Reveal actual song</button>
+  </div>
+
+  <div id="result" class="result" hidden>
+    <div class="score" id="scoreText"></div>
+    <div class="detail" id="detailText"></div>
+    <div class="comparison" id="comparisonText"></div>
+  </div>
+
+  <script src="./index.js"></script>
+</body>
+</html>
+
+
+
+// index.js
+// Simple guessing game: user chooses an artist and a guessed song title.
+// The app compares the guess to the actual song and shows a closeness score + details.
+
+(async function() {
+  // DOM elements
+  const artistSelect = document.getElementById('artistSelect');
+  const songSelect = document.getElementById('songSelect');
+  const guessButton = document.getElementById('guessButton');
+  const revealButton = document.getElementById('revealButton');
+  const result = document.getElementById('result');
+  const scoreText = document.getElementById('scoreText');
+  const detailText = document.getElementById('detailText');
+  const comparisonText = document.getElementById('comparisonText');
+
+  // Load the songs data
+  let songs = [];
+  try {
+    const resp = await fetch('./data/songs.json');
+    songs = await resp.json();
+  } catch (err) {
+    console.error('Failed to load songs.json', err);
+    detailText.textContent = 'Failed to load data. Check console.';
+    result.hidden = false;
+    return;
+  }
+
+  // Build artist list
+  const artists = Array.from(new Set(songs.map(s => s.artist))).sort();
+  artists.forEach(artist => {
+    const opt = document.createElement('option');
+    opt.value = artist;
+    opt.textContent = artist;
+    artistSelect.appendChild(opt);
+  });
+
+  // Populate songs for an artist
+  function populateSongsForArtist(artist) {
+    songSelect.innerHTML = '';
+    const list = songs.filter(s => s.artist === artist).map(s => s.title);
+    list.forEach(title => {
+      const opt = document.createElement('option');
+      opt.value = title;
+      opt.textContent = title;
+      songSelect.appendChild(opt);
+    });
+  }
+
+  artistSelect.addEventListener('change', () => {
+    populateSongsForArtist(artistSelect.value);
+  });
+
+  // Initialize selects
+  if (artists.length > 0) {
+    artistSelect.value = artists[0];
+    populateSongsForArtist(artists[0]);
+  }
+
+  // Normalization helper
+  function normalizeForCompare(str) {
+    return str
+      .toLowerCase()
+      .normalize('NFD') // separate diacritics
+      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+      .replace(/[^a-z0-9\s]/g, '') // drop punctuation
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Levenshtein distance
+  function levenshtein(a, b) {
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    const matrix = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1));
+    for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+    for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return matrix[a.length][b.length];
+  }
+
+  // Word-overlap score [0..1]
+  function wordOverlapScore(a, b) {
+    if (!a || !b) return 0;
+    const wa = new Set(a.split(' '));
+    const wb = new Set(b.split(' '));
+    let shared = 0;
+    wa.forEach(w => { if (wb.has(w)) shared++; });
+    const maxWords = Math.max(wa.size, wb.size, 1);
+    return shared / maxWords;
+  }
+
+  // Position match score [0..1] - count chars matching in same position
+  function positionMatchScore(a, b) {
+    const minLen = Math.min(a.length, b.length);
+    if (minLen === 0) return 0;
+    let matches = 0;
+    for (let i = 0; i < minLen; i++) {
+      if (a[i] === b[i]) matches++;
+    }
+    const maxLen = Math.max(a.length, b.length);
+    return matches / Math.max(1, maxLen);
+  }
+
+  // Combined similarity in [0..1]
+  function computeSimilarity(actual, guess) {
+    const an = normalizeForCompare(actual);
+    const gn = normalizeForCompare(guess);
+
+    const maxLen = Math.max(an.length, gn.length, 1);
+    const lev = levenshtein(an, gn);
+    const charSim = 1 - (lev / maxLen); // chars similarity
+    const wordSim = wordOverlapScore(an, gn);
+    const posSim = positionMatchScore(an, gn);
+
+    // Weighted combination - tweak weights if you want different behavior.
+    const score = 0.5 * charSim + 0.35 * wordSim + 0.15 * posSim;
+    return {
+      score: Math.max(0, Math.min(1, score)),
+      charSim,
+      wordSim,
+      posSim,
+      lev,
+      normalizedActual: an,
+      normalizedGuess: gn
+    };
+  }
+
+  function highlightComparison(actual, guess) {
+    // We'll highlight shared whole words first, then show leftovers.
+    const an = normalizeForCompare(actual);
+    const gn = normalizeForCompare(guess);
+    const aWords = an.split(' ');
+    const gWords = gn.split(' ');
+    const aSet = new Set(aWords.filter(Boolean));
+    const gSet = new Set(gWords.filter(Boolean));
+    // Build display of actual: wrap words that are in guess with .match
+    const displayActual = actual.split(/\s+/).map(origWord => {
+      const key = normalizeForCompare(origWord);
+      if (key && gSet.has(key)) return `<span class="match">${escapeHtml(origWord)}</span>`;
+      if (key && key.length > 0 && gSet.has(key)) return `<span class="partial">${escapeHtml(origWord)}</span>`;
+      return `<span class="mismatch">${escapeHtml(origWord)}</span>`;
+    }).join(' ');
+
+    // For guess, highlight words found in actual
+    const displayGuess = guess.split(/\s+/).map(origWord => {
+      const key = normalizeForCompare(origWord);
+      if (key && aSet.has(key)) return `<span class="match">${escapeHtml(origWord)}</span>`;
+      if (key && key.length > 0 && aSet.has(key)) return `<span class="partial">${escapeHtml(origWord)}</span>`;
+      return `<span class="mismatch">${escapeHtml(origWord)}</span>`;
+    }).join(' ');
+
+    return {
+      displayActual,
+      displayGuess
+    };
+  }
+
+  // small helper to escape HTML
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, (m) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]);
+  }
+
+  // action: guess
+  guessButton.addEventListener('click', () => {
+    const artist = artistSelect.value;
+    const guessTitle = songSelect.value;
+    // For the purpose of the game, choose an "actual" randomly from the same artist
+    const sameArtist = songs.filter(s => s.artist === artist);
+    if (sameArtist.length === 0) {
+      detailText.textContent = 'No songs available for that artist.';
+      result.hidden = false;
+      return;
+    }
+    // The "actual" could be chosen randomly or fixed; we'll randomize to play the guessing game.
+    const actualObj = sameArtist[Math.floor(Math.random() * sameArtist.length)];
+    const actualTitle = actualObj.title;
+
+    const sim = computeSimilarity(actualTitle, guessTitle);
+    const pct = Math.round(sim.score * 100);
+
+    scoreText.textContent = `Score: ${pct}%`;
+    detailText.innerHTML = `Actual: <strong>${escapeHtml(actualTitle)}</strong> — Guess: <strong>${escapeHtml(guessTitle)}</strong><br/>
+      Levenshtein: ${sim.lev}, Char similarity: ${Math.round(sim.charSim*100)}%, Word overlap: ${Math.round(sim.wordSim*100)}%, Position match: ${Math.round(sim.posSim*100)}%`;
+
+    const highlights = highlightComparison(actualTitle, guessTitle);
+    comparisonText.innerHTML = `<div><strong>Actual</strong>: ${highlights.displayActual}</div>
+      <div style="margin-top:6px"><strong>Guess</strong>: ${highlights.displayGuess}</div>`;
+
+    result.hidden = false;
+  });
+
+  // reveal the actual song (choose a random actual and show without scoring)
+  revealButton.addEventListener('click', () => {
+    const artist = artistSelect.value;
+    const sameArtist = songs.filter(s => s.artist === artist);
+    if (!sameArtist.length) return;
+    const actualObj = sameArtist[Math.floor(Math.random() * sameArtist.length)];
+    scoreText.textContent = `Actual song: ${actualObj.title}`;
+    detailText.textContent = `Artist: ${actualObj.artist}`;
+    comparisonText.innerHTML = '';
+    result.hidden = false;
+  });
+
+})();
+
+
+
+
+if (actual === guess) {
+            // display answer
+            // display correct
+            return;
+        }
+        let album_diff = guess.albumNumber - actual.albumNumber;
+        if (album_diff === 0) {
+            // album name and number will be green
+        }
+        else if (Math.abs(album_diff) < 3) {
+            // guess album and album number will be yellow
+
+            // up or down?
+            if (album_diff > 0) {
+                // guess is higher than actual
+                // down arrow
+            }
+            else {
+                // guess is lower than actual
+                // up arrow
+            }
+        }
+        else {
+            // gray
+        }
+
+
+        let song_diff = guess.songNumber - actual.songNumber;
+        if (song_diff === 0) {
+            // song name and number will be green
+        }
+        else if (Math.abs(song_diff) < 3) {
+            // guess title and song number will be yellow
+
+            // up or down?
+            if (song_diff > 0) {
+                // guess is higher than actual
+                // down arrow
+            }
+            else {
+                // guess is lower than actual
+                // up arrow
+            }
+        }
+        else {
+            // gray
+        }
+
+        let length_diff = guess.len - actual.len;
+        if (length_diff === 0) {
+            // song length green
+        }
+        else if (Math.abs(length_diff) < 30) {
+            if (length_diff > 0) {
+                // down arrow
+            }
+            else {
+                // up arrow
+            }
+        }
+        else {
+            // gray
+        }
+
+    }
