@@ -42,9 +42,9 @@
         if (diff === 0) {
             return {color: 'green', dir: null};
         } else if (Math.abs(diff) < 3) {
-            return {color: 'yellow', dir: diff > 0 ? 'down' : 'up'};
+            return {color: 'yellow', dir: diff > 0 ? '↑' : '↓'};
         } else {
-            return {color: 'gray', dir: null};
+            return {color: 'gray', dir: diff > 0 ? '↑' : '↓'};
         }
     }
 
@@ -53,9 +53,9 @@
         if (diff === 0) {
             return {color: 'green', dir: null};
         } else if (Math.abs(diff) < 3) {
-            return {color: 'yellow', dir: diff > 0 ? 'down' : 'up'};
+            return {color: 'yellow', dir: diff > 0 ? '↑' : '↓'};
         } else {
-            return {color: 'gray', dir: null};
+            return {color: 'gray', dir: diff > 0 ? '↑' : '↓'};
         }
     }
 
@@ -64,9 +64,9 @@
         if (diff === 0) {
             return {color: 'green', dir: null};
         } else if (Math.abs(diff) < 30) {
-            return {color: 'yellow', dir: diff > 0 ? 'down' : 'up'};
+            return {color: 'yellow', dir: diff > 0 ? '↑' : '↓'};
         } else {
-            return {color: 'gray', dir: null};
+            return {color: 'gray', dir: diff > 0 ? '↑' : '↓'};
         }
     }
 
@@ -110,13 +110,13 @@
 
         const albumNumField = document.createElement('div');
         albumNumField.className = 'field';
-        albumNumField.innerHTML = `<span class="label">Album #:</span> ${guessObj.albumNumber}`;
+        albumNumField.innerHTML = `<span class="label">Album #:</span> ${guessObj.albumNumber}` + (albumStatus.dir ? ` ${albumStatus.dir}` : '');
         albumNumField.classList.add(albumStatus.color);
         row.appendChild(albumNumField);
 
         const songNumField = document.createElement('div');
         songNumField.className = 'field';
-        songNumField.innerHTML = `<span class="label">Track #:</span> ${guessObj.songNumber}`;
+        songNumField.innerHTML = `<span class="label">Track #:</span> ${guessObj.songNumber}` + (songStatus.dir ? ` ${songStatus.dir}` : '');
         songNumField.classList.add(songStatus.color);
         row.appendChild(songNumField);
 
@@ -127,10 +127,10 @@
         const lenField = document.createElement('div');
         lenField.className = 'field';
         if (sec > 9) {
-            lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:${sec}`;
+            lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:${sec}` + (lenStatus.dir ? ` ${lenStatus.dir}` : '');
         }
         else {
-            lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:0${sec}`;
+            lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:0${sec}` + (lenStatus.dir ? ` ${lenStatus.dir}` : '');
         }
         lenField.classList.add(lenStatus.color);
         row.appendChild(lenField);
@@ -173,7 +173,7 @@
 
         let songTitleCmp = songCmp;
         if (songCmp.color === 'green' && albumCmp.color !== 'green'){
-            songTitleCmp = {color:'yellow'};
+            songTitleCmp = {color:'yellow', dir: songCmp.dir};
         }
 
 
