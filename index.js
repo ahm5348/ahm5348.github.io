@@ -74,7 +74,7 @@
         return { color: 'gray' };
     }
 
-    function displayGuess(albumStatus, songStatus, guessObj) {
+    function displayGuess(albumStatus, songStatus, lenStatus, guessObj) {
         const row = document.createElement('div');
         row.className = 'guessRow';
 
@@ -86,7 +86,7 @@
 
         const albumField = document.createElement('div');
         albumField.className = 'field';
-        albumField.innerHTML = `<span class="label">Album: :</span> ${guessObj.album}`;
+        albumField.innerHTML = `<span class="label">Album:</span> ${guessObj.album}`;
         albumField.classList.add(albumStatus.color);
         row.appendChild(albumField);
 
@@ -102,6 +102,22 @@
         songNumField.classList.add(songStatus.color);
         row.appendChild(songNumField);
 
+        // interpret time
+        const min = Math.floor(guessObj.len / 60);
+        const sec = guessObj.len % 60;
+
+        const lenField = document.createElement('div');
+        lenField.className = 'field';
+        if (sec > 9) {
+            lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:${sec}`;
+        }
+        else {
+            lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:0${sec}`;
+        }
+
+        lenField.classList.add(lenStatus.color);
+        row.appendChild(lenField);
+
         // stop here for now
         guesses.append(row);
 
@@ -109,7 +125,9 @@
 
     change_answer.addEventListener('click', () => {
         answer = songs[Math.floor(Math.random() * songs.length)];   // needs to be changed
-        answer_div.hidden = true;
+        guesses.replaceChildren();
+        guess_num = 0;
+        answer_div.hidden = true; // ensure its hidden now even if it wasnt before
     });
 
     submit.addEventListener('click', () => {
@@ -119,17 +137,22 @@
             alert('Please select a valid song');
             return;
         }
+        if (guess_num > 7) {
+            alert('Out of Guesses!');
+            return;
+        }
+        guess_num++;
 
         const songCmp = check_song(answer.songNumber, guess.songNumber);
         const albumCmp = check_album(answer.albumNumber, guess.albumNumber);
-        // const lenCmp = check_length(answer.len, guess.len);
+        const lenCmp = check_length(answer.len, guess.len);
 
-        displayGuess(albumCmp, songCmp, guess);
+        displayGuess(albumCmp, songCmp, lenCmp, guess);
 
     });
 
     seeanswer.addEventListener('click', () => {
-        answer_text.textContent = `${answer.title} on Album ${answer.album}`;
+        answer_text.textContent = `${answer.title} -- ${answer.album}`;
         answer_div.hidden = false;
     });
 
