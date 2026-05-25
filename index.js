@@ -71,17 +71,35 @@
     }
 
     function check_features(act_features, guess_features) {
-        return { color: 'gray' };
+        // if all features match (and same length), green
+        // if at least one matches, yellow
+        // if none match, gray
+
+        let i = 0
+        for (let feature of guess_features) {
+            if (act_features.includes(feature)) {
+                i = i + 1;
+            }
+        }
+        if (i >= 1 && i === act_features.length) {
+            return {color: 'green'};
+        }
+        if (i === 0) {
+            return {color: 'gray'};
+        }
+        else {
+            return {color: 'yellow'};
+        }
     }
 
-    function displayGuess(albumStatus, songStatus, lenStatus, guessObj) {
+    function displayGuess(albumStatus, songStatus, songTitleStatus, lenStatus, featureStatus, guessObj) {
         const row = document.createElement('div');
         row.className = 'guessRow';
 
         const titleField = document.createElement('div');
         titleField.className = 'field';
         titleField.innerHTML = `<span class="label">Title:</span> ${guessObj.title}`;
-        titleField.classList.add(songStatus.color);
+        titleField.classList.add(songTitleStatus.color);
         row.appendChild(titleField);
 
         const albumField = document.createElement('div');
@@ -114,9 +132,14 @@
         else {
             lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:0${sec}`;
         }
-
         lenField.classList.add(lenStatus.color);
         row.appendChild(lenField);
+
+        const featureField = document.createElement('div');
+        featureField.className = 'field';
+        featureField.innerHTML = `<span class="label">Features:</span> ${guessObj.features}`;
+        featureField.classList.add(featureStatus.color);
+        row.appendChild(featureField);
 
         // stop here for now
         guesses.append(row);
@@ -146,8 +169,15 @@
         const songCmp = check_song(answer.songNumber, guess.songNumber);
         const albumCmp = check_album(answer.albumNumber, guess.albumNumber);
         const lenCmp = check_length(answer.len, guess.len);
+        const featureCmp = check_features(answer.features, guess.features);
 
-        displayGuess(albumCmp, songCmp, lenCmp, guess);
+        let songTitleCmp = songCmp;
+        if (songCmp.color === 'green' && albumCmp.color !== 'green'){
+            songTitleCmp = {color:'yellow'};
+        }
+
+
+        displayGuess(albumCmp, songCmp, songTitleCmp, lenCmp, featureCmp, guess);
 
     });
 
