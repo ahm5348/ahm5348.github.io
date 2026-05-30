@@ -2,10 +2,13 @@
 
 (async function()  {
     // take elements from HTML
-    const songsel = document.getElementById('songsel');
+    const songsel = document.getElementById('songInput');
+    const suggest = document.getElementById('suggestions');
+
+    const seeanswer = document.getElementById('seeanswer');
     const submit = document.getElementById('submit');
     const change_answer = document.getElementById('change_answer');
-    const seeanswer = document.getElementById('seeanswer');
+
     const answer_text = document.getElementById('answer_text');
     const guesses = document.getElementById('guesses');
     const answer_div = document.getElementById('answer');
@@ -27,20 +30,72 @@
     }
 
     // Create a list of song titles from the list
-    const titles = Array.from(new Set(songs.map(s => s.title))).sort();
-    titles.forEach(title => {
-        const option = document.createElement('option');
-        option.value = title;
-        option.text = title;
-        songsel.appendChild(option);
-    })
+    // const titles = Array.from(new Set(songs.map(s => s.title))).sort();
+    // titles.forEach(title => {
+    //     const option = document.createElement('option');
+    //     option.value = title;
+    //     option.text = title;
+    //     // songsel.appendChild(option);
+    // })
+
+    const indexedSongs = songs.map((song, i) => ({
+        title: song.title, index: i}));
+    let selIndex = null;
 
     // set up guess number
     let guess_num = 0;
 
     // set up random song
     let answer = songs[Math.floor(Math.random() * songs.length)];
-    // assert answer is a song?
+
+
+    /// Dropdown
+    function filterSuggestions(input) {
+        if (!input) return [];
+        const lowerInput = input.trim().toLowerCase();
+        return indexedSongs.filter(
+            indexedSong => indexedSong.title.toLowerCase().startsWith(lowerInput));
+    }
+
+    function renderSuggestions(list) {
+        // clear suggestions
+        suggest.innerHTML = '';
+
+        if (!list || list.length === 0) return;
+
+        // show first 5 options
+        const max = Math.min(list.length, 5);
+        for (let i = 0; i < max; i++) {
+            const indexedSong = list[i];
+            const div = document.createElement('div');
+            div.className = 'suggestion';
+            div.dataset.index = indexedSong.index;
+            // div.dataset.pos = i;
+            div.innerHTML = indexedSong.title;
+            div.addEventListener('click', (e) => {
+                e.preventDefault(); // dont do anything extra, we are taking care of it!
+                chooseSuggestion(div);
+            });
+            suggest.appendChild(div);
+        }
+
+        // reveal suggestions now
+        suggest.hidden = false;
+    }
+
+    function chooseSuggestion(element) {
+        const idx = parseInt(element.dataset.index, 10); // base 10
+        songsel.value = songs[idx].title;
+        // suggestions menu closed
+        suggest.hidden = true;
+    }
+
+    songsel.addEventListener('input', (e) => {
+        const text = songsel.value;
+        const filtered = filterSuggestions(text);
+        renderSuggestions(filtered);
+    });
+
 
     function check_album(actual_num, guess_num) {
         const diff = (actual_num - guess_num);
@@ -101,17 +156,6 @@
         const row = document.createElement('div');
         row.className = 'guessRow';
 
-        const titleField = document.createElement('div');
-        titleField.className = 'field';
-        titleField.innerHTML = `<span class="label">Title:</span> ${guessObj.title}`;
-        if (colors.checked) {
-            titleField.classList.add(songTitleStatus.color);
-        }
-        else {
-            titleField.classList.add('gray');
-        }
-        row.appendChild(titleField);
-
         const albumField = document.createElement('div');
         albumField.className = 'field';
         albumField.innerHTML = `<span class="label">Album:</span> ${guessObj.album}`;
@@ -122,6 +166,17 @@
             albumField.classList.add('gray');
         }
         row.appendChild(albumField);
+
+        const titleField = document.createElement('div');
+        titleField.className = 'field';
+        titleField.innerHTML = `<span class="label">Title:</span> ${guessObj.title}`;
+        if (colors.checked) {
+            titleField.classList.add(songTitleStatus.color);
+        }
+        else {
+            titleField.classList.add('gray');
+        }
+        row.appendChild(titleField);
 
         const albumNumField = document.createElement('div');
         albumNumField.className = 'field';
@@ -240,7 +295,8 @@
     });
 
     seeanswer.addEventListener('click', () => {
-        answer_text.textContent = `${answer.title} -- ${answer.album}`;
+        answer_text.textContent = `Song: ${answer.title} Album: ${answer.album}`;
+        // make background for it green
         answer_div.hidden = false;
     });
 

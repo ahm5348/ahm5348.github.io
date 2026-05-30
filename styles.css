@@ -1,0 +1,128 @@
+/* styles.css - responsive/mobile friendly styles for Upchurzzle */
+:root{
+    --bg:#ffffff;
+    --muted:#666;
+    --accent:#2b8cff;
+    --green:#d4ffd4;
+    --yellow:#fff4c2;
+    --gray:#f3f3f3;
+    --card:#fafafa;
+    --radius:8px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+    margin:0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:var(--bg);
+    color:#111;
+    padding:16px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+.container{
+    max-width:920px;
+    margin:0 auto;
+}
+
+/* header */
+header{
+    font-size:1.25rem;
+    font-weight:600;
+    margin-bottom:12px;
+}
+
+/* controls row */
+.controls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+}
+
+/* autocomplete */
+.autocomplete{ position:relative; flex:1; min-width:180px; }
+#songInput{
+    width:100%;
+    padding:10px 12px;
+    font-size:1rem;
+    border:1px solid #ddd;
+    border-radius:var(--radius);
+    background:white;
+    outline:none;
+}
+#songInput:focus{ box-shadow:0 0 0 3px rgba(43,140,255,0.12); border-color:var(--accent); }
+
+.suggestions{
+    position:absolute;
+    left:0;
+    right:0;
+    top:calc(100% + 6px);
+    background:white;
+    border:1px solid #e6e6e6;
+    border-radius:8px;
+    box-shadow:0 6px 18px rgba(20,20,20,0.08);
+    max-height:320px;
+    overflow:auto;
+    z-index:30;
+}
+
+/* suggestion item */
+.suggestion{
+    padding:10px 12px;
+    font-size:0.95rem;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+.suggestion .meta{ color:var(--muted); font-size:0.85rem; }
+.suggestion:hover, .suggestion.active{ background:var(--gray); }
+
+/* action controls */
+button{
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    background:white;
+    font-size:0.95rem;
+    cursor:pointer;
+}
+button.primary{
+    background:var(--accent);
+    color:white;
+    border-color:transparent;
+}
+.controls .small{ font-size:0.9rem; color:var(--muted); }
+
+/* guesses list */
+.guesses{ margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+.guessRow{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #eee;
+    background:var(--card);
+    flex-wrap:wrap;
+}
+.field{ min-width:120px; padding:6px 8px; border-radius:6px; }
+.label{ display:block; font-weight:600; font-size:0.9rem; margin-bottom:4px; color:#222; }
+.green{ background:var(--green); color:#083; }
+.yellow{ background:var(--yellow); color:#6a4b00; }
+.gray{ background:#f8f8f8; color:var(--muted); }
+
+/* answer box */
+#answer{ margin-top:12px; padding:12px; border-radius:8px; border:1px solid #eee; background:var(--card); }
+
+/* responsive adjustments */
+@media (max-width:640px){
+    .controls{ flex-direction:column; align-items:stretch; }
+    button{ width:100%; }
+    .field{ min-width:auto; flex:1 1 45%; }
+    .guessRow{ flex-direction:column; align-items:stretch; }
+}
