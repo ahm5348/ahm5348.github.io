@@ -158,7 +158,7 @@
 
         const albumField = document.createElement('div');
         albumField.className = 'field';
-        albumField.innerHTML = `<span class="label">Album:</span> ${guessObj.album}`;
+        albumField.innerHTML = `${guessObj.album}`;
         if (colors.checked) {
             albumField.classList.add(albumStatus.color);
         }
