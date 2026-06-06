@@ -18,6 +18,8 @@
     const colors = document.getElementById('colors');
     const features = document.getElementById('features');
 
+    const guessHeader = document.getElementById('guessHeader');
+
     // Load songs
     let songs = [];
     try {
@@ -169,7 +171,7 @@
 
         const titleField = document.createElement('div');
         titleField.className = 'field';
-        titleField.innerHTML = `<span class="label">Title:</span> ${guessObj.title}`;
+        titleField.innerHTML = `${guessObj.title}`;
         if (colors.checked) {
             titleField.classList.add(songTitleStatus.color);
         }
@@ -181,10 +183,10 @@
         const albumNumField = document.createElement('div');
         albumNumField.className = 'field';
         if (arrows.checked) {
-            albumNumField.innerHTML = `<span class="label">Album #:</span> ${guessObj.albumNumber}` + (albumStatus.dir ? ` ${albumStatus.dir}` : '');
+            albumNumField.innerHTML = `${guessObj.albumNumber}` + (albumStatus.dir ? ` ${albumStatus.dir}` : '');
         }
         else {
-            albumNumField.innerHTML = `<span class="label">Album #:</span> ${guessObj.albumNumber}`;
+            albumNumField.innerHTML = `${guessObj.albumNumber}`;
         }
         if (colors.checked) {
             albumNumField.classList.add(albumStatus.color);
@@ -197,10 +199,10 @@
         const songNumField = document.createElement('div');
         songNumField.className = 'field';
         if (arrows.checked) {
-            songNumField.innerHTML = `<span class="label">Track #:</span> ${guessObj.songNumber}` + (songStatus.dir ? ` ${songStatus.dir}` : '');
+            songNumField.innerHTML = `${guessObj.songNumber}` + (songStatus.dir ? ` ${songStatus.dir}` : '');
         }
         else {
-            songNumField.innerHTML = `<span class="label">Track #:</span> ${guessObj.songNumber}`;
+            songNumField.innerHTML = `${guessObj.songNumber}`;
         }
         if (colors.checked) {
             songNumField.classList.add(songStatus.color);
@@ -217,18 +219,18 @@
             lenField.className = 'field';
             if (sec > 9) {
                 if (arrows.checked) {
-                    lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:${sec}` + (lenStatus.dir ? ` ${lenStatus.dir}` : '');
+                    lenField.innerHTML = `${min}:${sec}` + (lenStatus.dir ? ` ${lenStatus.dir}` : '');
                 }
                 else {
-                    lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:${sec}`;
+                    lenField.innerHTML = `${min}:${sec}`;
                 }
             }
             else {
                 if (arrows.checked) {
-                    lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:0${sec}` + (lenStatus.dir ? ` ${lenStatus.dir}` : '');
+                    lenField.innerHTML = `${min}:0${sec}` + (lenStatus.dir ? ` ${lenStatus.dir}` : '');
                 }
                 else {
-                    lenField.innerHTML = `<span class="label">Track Length:</span> ${min}:0${sec}`;
+                    lenField.innerHTML = `${min}:0${sec}`;
                 }
 
             }
@@ -244,7 +246,7 @@
         if (features.checked) {
             const featureField = document.createElement('div');
             featureField.className = 'field';
-            featureField.innerHTML = `<span class="label">Features:</span> ${guessObj.features}`;
+            featureField.innerHTML = `${guessObj.features}`;
             if (colors.checked) {
                 featureField.classList.add(featureStatus.color);
             }
@@ -256,6 +258,7 @@
 
         // stop here for now
         guesses.append(row);
+        guessHeader.hidden = false;
 
     }
 
@@ -264,6 +267,7 @@
         guesses.replaceChildren();
         guess_num = 0;
         answer_div.hidden = true; // ensure its hidden now even if it wasnt before
+        guessHeader.hidden = true;
     });
 
     submit.addEventListener('click', () => {

@@ -6,24 +6,12 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link rel="stylesheet" href="styles.css" />
 </head>
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    <title>Upchurzzle</title>-->
-<!--    <style>-->
-<!--        body { font-family: Arial, sans-serif; padding: 20px; }-->
-<!--        .guessRow { margin: 10px 0; padding: 10px; border-radius: 6px; display: flex; gap: 15px; }-->
-<!--        .field { padding: 6px; border-radius: 4px; min-width: 150px; }-->
-<!--        .label { font-weight: bold; }-->
-<!--        .green { background: #d4ffd4; color: #003300; }-->
-<!--        .yellow { background: #fff4c2; color: #6a4b00; }-->
-<!--        .gray { background: #f0f0f0; color: #666; }-->
-<!--    </style>-->
-<!--</head>-->
+
 <body>
     <header>Welcome to the Upchurzzle v3!</header>
 
     <div>
-        <label>Options: (NOT COMPLETED): </label>
+        <label>Options: </label>
         <input type="checkbox" id="arrows" name="arrows" value="arrows" checked>
         <label for="arrows">Up/Down Arrows</label>
         <input type="checkbox" id="length" name="length" value="length" checked>
@@ -37,15 +25,6 @@
     <div>
         <p></p>
     </div>
-
-<!--    <button id="test">testing!!!</button>-->
-
-
-
-<!--    <div>-->
-<!--        <label for="songsel">Guess Here:</label>-->
-<!--        <select id="songsel"></select>-->
-<!--    </div>-->
 
     <div class="controls">
         <div class="autocomplete">
@@ -62,21 +41,24 @@
 
         <button id="submit" class='primary'>Submit</button>
 
-        <div class="guessRow">
+        <div id='guessHeader' class="guessRow" hidden>
             <div class="field">
                 <span class="label">Album:</span>
             </div>
             <div class="field">
-                <span class="label">Album:</span>
+                <span class="label">Song:</span>
             </div>
             <div class="field">
-                <span class="label">Album:</span>
+                <span class="label">Album Number:</span>
             </div>
             <div class="field">
-                <span class="label">Album:</span>
+                <span class="label">Song Number:</span>
             </div>
             <div class="field">
-                <span class="label">Album:</span>
+                <span class="label">Track Length:</span>
+            </div>
+            <div class="field">
+                <span class="label">Features:</span>
             </div>
 
         </div>
