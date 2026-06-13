@@ -45,7 +45,7 @@ header{
 }
 
 /* autocomplete */
-.autocomplete{ position:relative; flex:1; min-width:180px; }
+.autocomplete{ position:relative; flex:1 1 160px; min-width:120px; }
 #songInput{
     width:100%;
     padding:10px 12px;
@@ -102,21 +102,26 @@ button.primary{
 
 /* guesses list */
 .guesses{ margin-top:14px; display:flex; flex-direction:column; gap:10px; }
-.guessRow{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    padding:10px;
-    border-radius:8px;
-    border:1px solid #eee;
-    background:black;
-    flex-wrap:wrap;
-}
-.guessRow[hidden] {
-     display: none;
-}
+/*.guessRow{*/
+/*    display:flex;*/
+/*    gap:10px;*/
+/*    align-items:center;*/
+/*    padding:10px;*/
+/*    border-radius:8px;*/
+/*    border:1px solid #eee;*/
+/*    background:black;*/
+/*    flex-wrap:wrap;*/
+/*}*/
+/*.guessRow[hidden] {*/
+/*     display: none;*/
+/*}*/
+.guessRow { display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10px, 1fr));
+    gap: 10px; padding: 10px; border-radius: 8px; border: 1px solid #eee; background: black; max-width:100% }
 
-.field{ padding:4px 8px; border-radius:6px; width:150px; text-align:center; }
+
+.field{ padding:4px 8px; border-radius:6px;
+    flex: 1 1 140px; flex-grow:1; flex-shrink:1; flex-basis:140px; text-align: center; font-size: clamp(4px, 1rem, 1rem); }
 .label{ display:block; font-weight:600; font-size:0.9rem; margin-bottom:4px; color:white; }
 .green{ background:var(--green); color:#083; }
 .yellow{ background:var(--yellow); color:#6a4b00; }
@@ -129,6 +134,7 @@ button.primary{
 @media (max-width:640px){
     .controls{ flex-direction:column; align-items:stretch; }
     button{ width:100%; }
-    .field{ min-width:auto; flex:1 1 45%; }
+    .field{ min-width: 90px; flex:1 1 45%; }
+    .autocomplete { min-width: 0; flex-basis: 100%; }
     .guessRow{ flex-direction:column; align-items:stretch; }
 }
